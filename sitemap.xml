@@ -1,40 +1,88 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/css" href="https://www.xml-sitemaps.com/css/sitemap.css"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사이트맵 (전체 서비스 메뉴 안내)</title>
+    <meta name="description" content="솔루션 안내, 통합 검색, 견적 요약, 프로모션 혜택, 이용 후기 및 커뮤니티 전체 메뉴 목록입니다.">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; line-height: 1.6; color: #333; background-color: #f9f9f9; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 35px 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        h1 { font-size: 24px; color: #111; margin-bottom: 12px; border-bottom: 2px solid #222; padding-bottom: 12px; }
+        h2 { font-size: 17px; color: #222; margin-top: 24px; margin-bottom: 10px; border-left: 4px solid #0066cc; padding-left: 10px; }
+        p { margin-bottom: 12px; font-size: 14px; color: #555; word-break: keep-all; }
+        .sitemap-list { list-style: none; margin-left: 0; margin-bottom: 20px; }
+        .sitemap-list li { background: #fdfdfd; border: 1px solid #e8e8e8; border-radius: 6px; padding: 12px 15px; margin-bottom: 8px; }
+        .sitemap-list a { font-weight: bold; color: #0066cc; text-decoration: none; font-size: 15px; display: inline-block; margin-bottom: 3px; }
+        .sitemap-list a:hover { text-decoration: underline; }
+        .sitemap-list p { margin-bottom: 0; font-size: 13px; color: #777; }
+        .nav-links { margin-top: 35px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; font-size: 13px; }
+        .nav-links a { color: #0066cc; text-decoration: none; margin: 0 6px; font-weight: 500; }
+        .nav-links a:hover { text-decoration: underline; }
+        footer { margin-top: 25px; text-align: center; font-size: 13px; color: #888; }
+    </style>
+</head>
+<body>
 
-  <url>
-       <loc>https://recoveryxlawx.koreahankang.com/</loc>
-       <lastmod>2026-01-01T00:00:00+00:00</lastmod>
-       <priority>1.0000</priority>
-  </url>
-  <url>
-       <loc>https://recoveryxlawx.koreahankang.com/solution</loc>
-       <lastmod>2026-10-05T14:46:41+00:00</lastmod>
-       <priority>0.8000</priority>
-  </url>
-  <url>
-       <loc>https://recoveryxlawx.koreahankang.com/search</loc>
-       <lastmod>2026-10-05T14:46:41+00:00</lastmod>
-       <priority>0.8000</priority>
-  </url>
-  <url>
-       <loc>https://recoveryxlawx.koreahankang.com/reviews</loc>
-       <lastmod>2026-10-05T14:46:41+00:00</lastmod>
-       <priority>0.8000</priority>
-  </url>
-  <url>
-       <loc>https://recoveryxlawx.koreahankang.com/sum</loc>
-       <lastmod>2026-10-05T14:46:41+00:00</lastmod>
-       <priority>0.8000</priority>
-  </url>
-  <url>
-       <loc>https://recoveryxlawx.koreahankang.com/promotion</loc>
-       <lastmod>2026-10-05T14:46:41+00:00</lastmod>
-       <priority>0.8000</priority>
-  </url>
-  <url>
-       <loc>https://recoveryxlawx.koreahankang.com/community</loc>
-       <lastmod>2026-10-05T14:46:41+00:00</lastmod>
-       <priority>0.8000</priority>
-  </url>
-</urlset>
+<div class="container">
+    <header>
+        <h1>사이트맵 (Sitemap)</h1>
+        <p>본 웹사이트에서 제공하는 전체 서비스 구성 및 주요 메뉴 안내 페이지입니다.</p>
+    </header>
+
+    <main>
+        <section>
+            <h2>1. 서비스 탐색 및 솔루션</h2>
+            <ul class="sitemap-list">
+                <li>
+                    <a href="solution.html">맞춤 솔루션 (Solution)</a>
+                    <p>사용자 환경과 요구사항에 맞춘 최적의 맞춤형 서비스 및 해결 방안 안내</p>
+                </li>
+                <li>
+                    <a href="sum.html">통합 견적 및 분석 요약 (Sum / Summary)</a>
+                    <p>조건별 예상 비용 실시간 합산 계산, 견적 내역 및 비교 요약 리포트</p>
+                </li>
+                <li>
+                    <a href="search.html">스마트 상세 검색 (Search)</a>
+                    <p>필터링 옵션을 통한 맞춤 조건별 서비스 검색 및 빠른 탐색 센터</p>
+                </li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>2. 혜택 및 참여 커뮤니티</h2>
+            <ul class="sitemap-list">
+                <li>
+                    <a href="promotion.html">특별 프로모션 및 이벤트 (Promotion)</a>
+                    <p>진행 중인 기간 한정 할인 혜택, 제휴 이벤트 및 특별 리워드 정보</p>
+                </li>
+                <li>
+                    <a href="reviews.html">실제 이용 후기 (Reviews)</a>
+                    <p>서비스를 직접 경험한 고객들의 생생한 리뷰, 평점 및 실제 도입 사례</p>
+                </li>
+                <li>
+                    <a href="community.html">열린 커뮤니티 (Community)</a>
+                    <p>회원 간 정보 교류, 질의응답(Q&A) 및 자유로운 의견 소통 공간</p>
+                </li>
+            </ul>
+        </section>
+
+        <div class="nav-links">
+            <a href="/">홈</a> | 
+            <a href="solution.html">솔루션</a> | 
+            <a href="sum.html">견적요약</a> | 
+            <a href="search.html">통합검색</a> | 
+            <a href="promotion.html">프로모션</a> | 
+            <a href="reviews.html">이용후기</a> | 
+            <a href="community.html">커뮤니티</a>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; Online Service Information Center. All Rights Reserved.</p>
+    </footer>
+</div>
+
+</body>
+</html>
