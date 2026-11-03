@@ -3,96 +3,480 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- 1. 기본 Fallback 메타태그 (크롤러 초기 수집용) -->
     <title>비교계산 | 스마트한 실전 비교 분석 가이드</title>
     <meta name="description" content="조건별 정밀 비교와 합리적인 비용 산출을 통해 최적의 선택을 돕는 스마트 비교계산 가이드입니다.">
+    <meta name="robots" content="noindex, follow">
+
+    <!-- 2. [전자동 SEO & 브랜딩 엔진] /index.html 기반 자동 동기화 -->
+    <script>
+        (function() {
+            const currentUrl = window.location.href.split('#')[0].split('?')[0];
+            const origin = window.location.origin;
+
+            // [1] Canonical (표준 URL) 동적 설정
+            let canonical = document.querySelector('link[rel="canonical"]');
+            if (!canonical) {
+                canonical = document.createElement('link');
+                canonical.setAttribute('rel', 'canonical');
+                document.head.appendChild(canonical);
+            }
+            canonical.setAttribute('href', currentUrl);
+
+            // [2] 메타태그 생성 및 갱신 헬퍼 함수
+            function setMeta(nameOrProp, isProp, content) {
+                if (!content) return;
+                const attr = isProp ? 'property' : 'name';
+                let meta = document.querySelector(`meta[${attr}="${nameOrProp}"]`);
+                if (!meta) {
+                    meta = document.createElement('meta');
+                    meta.setAttribute(attr, nameOrProp);
+                    document.head.appendChild(meta);
+                }
+                meta.setAttribute('content', content);
+            }
+
+            // [3] /index.html 파일의 메타정보를 실시간으로 읽어와 세부페이지에 결합
+            fetch('/index.html')
+                .then(res => {
+                    if (!res.ok) throw new Error('/index.html 응답 없음');
+                    return res.text();
+                })
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    // 메인 /index.html 에서 타이틀 추출 및 브랜드명 정제
+                    let rawTitle = doc.querySelector('title')?.innerText?.trim() || window.location.hostname;
+                    let brandName = rawTitle.split(/[-–—|]/)[0].trim() || rawTitle;
+
+                    // 메인 대표 이미지(og:image) 상속 추출
+                    let mainOgImg = doc.querySelector('meta[property="og:image"]')?.content || '';
+
+                    // ★ [타이틀 결합] 메인 타이틀을 세부페이지 타이틀 맨 앞에 자동 삽입
+                    const pageSubTitle = "비교계산 | 스마트한 실전 비교 분석 가이드";
+                    document.title = `${brandName} | ${pageSubTitle}`;
+
+                    // 페이지 내부 브랜드명 텍스트 자동 동기화
+                    document.querySelectorAll('.auto-brand-name').forEach(el => {
+                        el.textContent = brandName;
+                    });
+
+                    // OpenGraph 태그 동적 생성 (카카오톡, SNS 링크 미리보기 최적화)
+                    setMeta('og:type', true, 'article');
+                    setMeta('og:site_name', true, brandName);
+                    setMeta('og:title', true, `${brandName} - 비교계산 가이드`);
+                    setMeta('og:description', true, `${brandName}의 스마트한 조건별 실전 비교 분석 및 합리적 비용 산출 가이드입니다.`);
+                    setMeta('og:url', true, currentUrl);
+                    if (mainOgImg) setMeta('og:image', true, mainOgImg);
+
+                    // 구글/네이버 상위노출용 JSON-LD 스키마 주입 (/index.html 기준)
+                    injectStructuredData(origin, currentUrl, brandName);
+                })
+                .catch(() => {
+                    // 비상 시 도메인명을 기반으로 안전하게 대체 작동
+                    const hostBrand = window.location.hostname;
+                    document.title = `${hostBrand} | 비교계산 실전 분석 가이드`;
+                    injectStructuredData(origin, currentUrl, hostBrand);
+                });
+
+            // [4] 구조화 데이터(JSON-LD) 생성 함수
+            function injectStructuredData(originUrl, pageUrl, name) {
+                const schema = {
+                    "@context": "https://schema.org",
+                    "@graph": [
+                        {
+                            "@type": "BreadcrumbList",
+                            "itemListElement": [
+                                { "@type": "ListItem", "position": 1, "name": name, "item": originUrl + "/index.html" },
+                                { "@type": "ListItem", "position": 2, "name": "비교계산", "item": pageUrl }
+                            ]
+                        },
+                        {
+                            "@type": "FAQPage",
+                            "mainEntity": [
+                                {
+                                    "@type": "Question",
+                                    "name": "비교계산 시 가장 먼저 확인해야 할 필수 항목은 무엇인가요?",
+                                    "acceptedAnswer": {
+                                        "@type": "Answer",
+                                        "text": "기본 제시 금액 외에 추가로 발생하는 수수료, 설치·유지관리비, 부가세 등 숨겨진 지출 항목을 빠짐없이 합산하여 총비용 기준으로 비교해야 정확한 판단이 가능합니다."
+                                    }
+                                },
+                                {
+                                    "@type": "Question",
+                                    "name": "비교 대상 간 조건이나 사양이 다를 때는 어떻게 계산하나요?",
+                                    "acceptedAnswer": {
+                                        "@type": "Answer",
+                                        "text": "계약 기간, 부가 옵션, 규격 단위를 동일한 기준으로 통일 설정하여 환산한 뒤, 실질적인 단가와 월평균 순부담 비용을 대조해야 왜곡 없는 비교가 가능합니다."
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                };
+                const scriptEl = document.createElement('script');
+                scriptEl.type = 'application/ld+json';
+                scriptEl.textContent = JSON.stringify(schema);
+                document.head.appendChild(scriptEl);
+            }
+        })();
+    </script>
+
+    <!-- 프리미엄 Pretendard 웹폰트 로드 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 
     <style>
+        /* 1. 글로벌 리셋 & 베이스 */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; background-color: #fafafa; color: #111827; padding: 50px 20px; line-height: 1.65; letter-spacing: -0.025em; -webkit-font-smoothing: antialiased; }
-        .container { max-width: 760px; margin: 0 auto; background: #ffffff; padding: 40px; border-radius: 16px; border: 1px solid #f0f0f2; box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.03), 0 20px 25px -5px rgba(0, 0, 0, 0.02); }
-        .main-bridge-cta-wrap { width: 100%; margin-bottom: 45px; }
-        .main-bridge-cta-box { position: relative; background: #090a0f; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 26px 28px; display: flex; align-items: center; justify-content: space-between; gap: 24px; text-decoration: none !important; cursor: pointer; box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.18); transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
-        .main-bridge-cta-box:hover { transform: translateY(-2px); box-shadow: 0 18px 32px -8px rgba(0, 0, 0, 0.28); border-color: rgba(255, 255, 255, 0.16); }
+        body { 
+            font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; 
+            background-color: #fafafa; 
+            color: #111827; 
+            padding: 50px 20px; 
+            line-height: 1.65; 
+            letter-spacing: -0.025em; 
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container { 
+            max-width: 760px; 
+            margin: 0 auto; 
+            background: #ffffff; 
+            padding: 44px; 
+            border-radius: 16px; 
+            border: 1px solid #f0f0f2;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.03), 0 20px 25px -5px rgba(0, 0, 0, 0.02); 
+        }
+
+        /* 2. 브레드크럼 (경로 탐색) */
+        .breadcrumb-nav { margin-bottom: 22px; }
+        .breadcrumb-list {
+            display: flex;
+            align-items: center;
+            list-style: none;
+            font-size: 12.5px;
+            color: #94a3b8;
+            gap: 8px;
+        }
+        .breadcrumb-list a { color: #64748b; text-decoration: none; }
+        .breadcrumb-list a:hover { color: #0f172a; }
+        .breadcrumb-separator { font-size: 10px; color: #cbd5e1; }
+
+        /* 3. 럭셔리 블랙 CTA 배너 */
+        .main-bridge-cta-wrap { width: 100%; margin-bottom: 40px; }
+        .main-bridge-cta-box {
+            position: relative;
+            background: #090a0f;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 24px 26px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            text-decoration: none !important;
+            cursor: pointer;
+            box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.16);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .main-bridge-cta-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 32px -8px rgba(0, 0, 0, 0.25);
+            border-color: rgba(255, 255, 255, 0.16);
+        }
         .cta-left { flex: 1; z-index: 1; }
-        .cta-badge { display: inline-block; color: #94a3b8; font-size: 10.5px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 6px; }
-        .cta-title { color: #ffffff; font-size: 17px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; word-break: keep-all; }
-        .cta-desc { color: #8e95a3; font-size: 13px; margin: 0; line-height: 1.5; word-break: keep-all; }
-        .cta-btn-area { flex-shrink: 0; z-index: 1; }
-        .cta-action-btn { display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: #090a0f !important; padding: 11px 20px; border-radius: 8px; font-size: 13.5px; font-weight: 600; transition: all 0.2s ease; }
+        .cta-badge {
+            display: inline-block;
+            color: #94a3b8;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .cta-title-text {
+            color: #ffffff;
+            font-size: 16.5px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 4px;
+            word-break: keep-all;
+        }
+        .cta-desc {
+            color: #8e95a3;
+            font-size: 13px;
+            margin: 0;
+            line-height: 1.45;
+            word-break: keep-all;
+        }
+        .cta-btn-area { flex-shrink: 0; }
+        .cta-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ffffff;
+            color: #090a0f !important;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            transition: all 0.2s ease;
+        }
         .main-bridge-cta-box:hover .cta-action-btn { background: #f1f3f5; }
-        .cta-arrow-icon { transition: transform 0.2s ease; }
-        .main-bridge-cta-box:hover .cta-arrow-icon { transform: translateX(3px); }
-        .header { text-align: left; margin-bottom: 35px; padding-bottom: 25px; border-bottom: 1px solid #f1f3f5; }
-        .category-tag { display: inline-block; font-size: 11.5px; font-weight: 700; color: #64748b; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
-        .header h1 { font-size: 26px; color: #0f172a; margin-bottom: 8px; font-weight: 700; letter-spacing: -0.03em; }
-        .header p { color: #64748b; font-size: 14.5px; line-height: 1.6; }
-        .tip-list { display: grid; gap: 16px; }
-        .tip-item { display: flex; align-items: flex-start; gap: 22px; padding: 24px 26px; background: #ffffff; border-radius: 12px; border: 1px solid #eef0f3; transition: border-color 0.2s ease; }
-        .tip-item:hover { border-color: #cbd5e1; }
-        .tip-index { font-size: 14px; font-weight: 700; color: #94a3b8; letter-spacing: 0.5px; padding-top: 1px; flex-shrink: 0; }
-        .tip-content h3 { font-size: 15.5px; margin-bottom: 5px; color: #0f172a; font-weight: 600; letter-spacing: -0.02em; }
-        .tip-content p { font-size: 13.5px; color: #64748b; margin: 0; line-height: 1.6; word-break: keep-all; }
+
+        /* 4. 헤더 영역 (유일한 H1) */
+        .header { 
+            text-align: left; 
+            margin-bottom: 35px; 
+            padding-bottom: 22px;
+            border-bottom: 1px solid #f1f3f5;
+        }
+        .category-tag {
+            display: inline-block;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #64748b;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .header h1 { 
+            font-size: 26px; 
+            color: #0f172a; 
+            margin-bottom: 8px; 
+            font-weight: 800; 
+            letter-spacing: -0.03em;
+        }
+        .header p { 
+            color: #64748b; 
+            font-size: 15px; 
+            line-height: 1.6;
+        }
+
+        /* 5. 조건별 비교 핵심 수칙 리스트 */
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 18px;
+            letter-spacing: -0.02em;
+        }
+        .step-list { display: grid; gap: 16px; margin-bottom: 45px; }
+        .step-item { 
+            display: flex; 
+            align-items: flex-start; 
+            gap: 22px; 
+            padding: 24px 26px; 
+            background: #ffffff; 
+            border-radius: 12px; 
+            border: 1px solid #eef0f3;
+            transition: all 0.2s ease;
+        }
+        .step-item:hover {
+            border-color: #cbd5e1;
+            background-color: #fdfdfe;
+        }
+        .step-index { 
+            font-size: 14px; 
+            font-weight: 800; 
+            color: #94a3b8; 
+            letter-spacing: 0.5px; 
+            padding-top: 1px;
+            flex-shrink: 0;
+        }
+        .step-content h3 { 
+            font-size: 16px; 
+            margin-bottom: 6px; 
+            color: #0f172a; 
+            font-weight: 700; 
+            letter-spacing: -0.02em;
+        }
+        .step-content p { 
+            font-size: 13.5px; 
+            color: #64748b; 
+            margin: 0; 
+            line-height: 1.6;
+            word-break: keep-all;
+        }
+
+        /* 6. 추천 대상 체크박스 */
+        .target-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px 26px;
+            margin-bottom: 45px;
+        }
+        .target-list { list-style: none; display: grid; gap: 10px; margin-top: 12px; }
+        .target-item {
+            font-size: 13.5px;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .target-item svg { color: #0284c7; flex-shrink: 0; }
+
+        /* 7. FAQ 영역 */
+        .faq-section { margin-bottom: 10px; }
+        .faq-item { border-bottom: 1px solid #f1f3f5; padding: 16px 0; }
+        .faq-item:first-of-type { border-top: 1px solid #f1f3f5; }
+        .faq-question {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1e293b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .faq-answer {
+            font-size: 13.5px;
+            color: #64748b;
+            margin-top: 10px;
+            line-height: 1.6;
+            word-break: keep-all;
+        }
+
+        /* 8. 모바일 반응형 */
         @media (max-width: 640px) {
-            body { padding: 25px 14px; }
+            body { padding: 20px 14px; }
             .container { padding: 26px 18px; }
-            .main-bridge-cta-wrap { margin-bottom: 30px; }
-            .main-bridge-cta-box { flex-direction: column; align-items: flex-start; padding: 22px 18px; gap: 18px; }
-            .cta-title { font-size: 16px; }
+            .main-bridge-cta-wrap { margin-bottom: 25px; }
+            .main-bridge-cta-box {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 20px 16px;
+                gap: 16px;
+            }
+            .cta-title-text { font-size: 15.5px; }
+            .cta-desc { font-size: 12px; }
             .cta-btn-area { width: 100%; }
             .cta-action-btn { width: 100%; justify-content: center; }
+
             .header h1 { font-size: 22px; }
-            .tip-item { gap: 14px; padding: 18px 16px; }
+            .header p { font-size: 13.5px; }
+            .step-item { gap: 14px; padding: 18px 16px; }
         }
     </style>
 </head>
 <body>
+
     <div class="container">
-        <div class="main-bridge-cta-wrap">
-            <a href="/" class="main-bridge-cta-box">
+
+        <!-- 1. 브레드크럼 네비게이션 (/index.html 연동) -->
+        <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+            <ol class="breadcrumb-list">
+                <li><a href="/index.html" class="auto-brand-name">홈</a></li>
+                <li class="breadcrumb-separator">/</li>
+                <li aria-current="page">비교계산</li>
+            </ol>
+        </nav>
+
+        <!-- 2. 최상단 공식 서비스 연결 브릿지 배너 (/index.html 연동) -->
+        <aside class="main-bridge-cta-wrap" aria-label="실시간 맞춤 비교계산 배너">
+            <a href="/index.html" class="main-bridge-cta-box" title="공식 실시간 비교계산 서비스로 이동">
                 <div class="cta-left">
                     <span class="cta-badge">Smart Calculator</span>
-                    <h2 class="cta-title">실시간 맞춤 비교계산 서비스</h2>
+                    <p class="cta-title-text"><span class="auto-brand-name">공식</span> 실시간 맞춤 비교계산 서비스</p>
                     <p class="cta-desc">원하는 조건을 입력하여 실시간 견적과 세부 항목별 비용 차이를 즉시 비교해 보세요.</p>
                 </div>
                 <div class="cta-btn-area">
                     <div class="cta-action-btn">
                         <span>비교 계산하기</span>
-                        <svg class="cta-arrow-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
                     </div>
                 </div>
             </a>
-        </div>
+        </aside>
 
-        <header class="header">
-            <span class="category-tag">Comparison & Estimation</span>
-            <h1>비교계산</h1>
-            <p>조건별 수치를 정밀하게 대조하고 불필요한 지출을 줄이는 실전 계산 가이드입니다.</p>
-        </header>
+        <!-- 3. 본문 시맨틱 콘텐츠 영역 -->
+        <main>
+            <header class="header">
+                <span class="category-tag">Comparison & Estimation</span>
+                <h1><span class="auto-brand-name">스마트</span> 비교계산 가이드</h1>
+                <p>조건별 수치를 정밀하게 대조하고 불필요한 지출을 줄이는 실전 계산 가이드입니다.</p>
+            </header>
 
-        <section class="tip-list">
-            <div class="tip-item">
-                <span class="tip-index">01</span>
-                <div class="tip-content">
-                    <h3>숨은 부대비용 및 고정비 포함</h3>
-                    <p>기본 제시 금액 외에 추가로 발생하는 수수료, 유지관리비, 부가세 등 숨겨진 지출 항목을 빠짐없이 합산하여 총비용 기준으로 비교해야 정확합니다.</p>
+            <!-- 실전 비교 핵심 수칙 3단계 -->
+            <section aria-labelledby="step-heading">
+                <h2 id="step-heading" class="section-title">스마트 비교 실전 3대 수칙</h2>
+                <div class="step-list">
+                    <article class="step-item">
+                        <span class="step-index" aria-label="1수칙">01</span>
+                        <div class="step-content">
+                            <h3>숨은 부대비용 및 고정비 포함</h3>
+                            <p>기본 제시 금액 외에 추가로 발생하는 수수료, 유지관리비, 부가세 등 숨겨진 지출 항목을 빠짐없이 합산하여 총비용 기준으로 비교해야 정확합니다.</p>
+                        </div>
+                    </article>
+
+                    <article class="step-item">
+                        <span class="step-index" aria-label="2수칙">02</span>
+                        <div class="step-content">
+                            <h3>동일 조건(기간·사양) 통일 설정</h3>
+                            <p>비교 대상 간 계약 기간이나 옵션 사양의 단위를 동일하게 맞추어야 왜곡 없이 실질적인 단가와 월평균 지출 차이를 명확히 판별할 수 있습니다.</p>
+                        </div>
+                    </article>
+
+                    <article class="step-item">
+                        <span class="step-index" aria-label="3수칙">03</span>
+                        <div class="step-content">
+                            <h3>할인율보다 실부담 순비용 중심 판단</h3>
+                            <p>표면적으로 표시되는 파격적인 할인율이나 일회성 혜택에 현혹되지 않고, 전체 약정 기간 동안 실제로 납부하게 되는 순비용 총액을 대조하세요.</p>
+                        </div>
+                    </article>
                 </div>
-            </div>
-            <div class="tip-item">
-                <span class="tip-index">02</span>
-                <div class="tip-content">
-                    <h3>동일 조건(기간·사양) 통일 설정</h3>
-                    <p>비교 대상 간 계약 기간이나 옵션 사양의 단위를 동일하게 맞추어야 왜곡 없이 실질적인 단가와 월평균 지출 차이를 명확히 판별할 수 있습니다.</p>
+            </section>
+
+            <!-- 추천 대상 체크박스 섹션 -->
+            <section class="target-box" aria-labelledby="target-heading">
+                <h2 id="target-heading" style="font-size: 15.5px; font-weight: 700; color: #0f172a;">이런 분들께 권장해 드립니다</h2>
+                <ul class="target-list">
+                    <li class="target-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <span>견적서 속 숨겨진 추가 비용과 수수료를 사전에 명확히 따져보고 싶으신 분</span>
+                    </li>
+                    <li class="target-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <span>옵션과 계약 기간 단위를 통일하여 객관적인 조건으로 비교하고 싶으신 분</span>
+                    </li>
+                    <li class="target-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <span>표면적 할인율 대신 실제로 납부하는 실부담 순비용 총액을 알고 싶으신 분</span>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- 구글/네이버 리치 스니펫 연동 FAQ -->
+            <section class="faq-section" aria-labelledby="faq-heading">
+                <h2 id="faq-heading" class="section-title">자주 묻는 질문 (FAQ)</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>비교계산 시 가장 먼저 확인해야 할 필수 항목은 무엇인가요?</span>
+                    </div>
+                    <p class="faq-answer">
+                        기본 제시 금액 외에 추가로 발생하는 수수료, 설치·유지관리비, 부가세 등 숨겨진 지출 항목을 빠짐없이 합산하여 총비용 기준으로 비교해야 정확한 판단이 가능합니다.
+                    </p>
                 </div>
-            </div>
-            <div class="tip-item">
-                <span class="tip-index">03</span>
-                <div class="tip-content">
-                    <h3>할인율보다 실부담 순비용 중심 판단</h3>
-                    <p>표면적으로 표시되는 파격적인 할인율이나 일회성 혜택에 현혹되지 않고, 전체 약정 기간 동안 실제로 납부하게 되는 순비용 총액을 대조하세요.</p>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>비교 대상 간 조건이나 사양이 다를 때는 어떻게 계산하나요?</span>
+                    </div>
+                    <p class="faq-answer">
+                        계약 기간, 부가 옵션, 규격 단위를 동일한 기준으로 통일 설정하여 환산한 뒤, 실질적인 단가와 월평균 순부담 비용을 대조해야 왜곡 없는 비교가 가능합니다.
+                    </p>
                 </div>
-            </div>
-        </section>
+            </section>
+        </main>
+
     </div>
+
 </body>
 </html>

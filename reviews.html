@@ -3,97 +3,475 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>고객후기 | 실제 이용자 리뷰</title>
+
+    <!-- 1. 기본 Fallback 메타태그 (크롤러 초기 수집용) -->
+    <title>고객후기 | 실제 이용자 리뷰 및 솔직한 내돈내산 평가</title>
     <meta name="description" content="실제 서비스를 이용하신 분들이 남겨주신 솔직한 평가와 경험담을 소개합니다.">
+    <meta name="robots" content="noindex, follow">
+
+    <!-- 2. [전자동 SEO & 브랜딩 엔진] /index.html 기반 자동 동기화 -->
+    <script>
+        (function() {
+            const currentUrl = window.location.href.split('#')[0].split('?')[0];
+            const origin = window.location.origin;
+
+            let canonical = document.querySelector('link[rel="canonical"]');
+            if (!canonical) {
+                canonical = document.createElement('link');
+                canonical.setAttribute('rel', 'canonical');
+                document.head.appendChild(canonical);
+            }
+            canonical.setAttribute('href', currentUrl);
+
+            function setMeta(nameOrProp, isProp, content) {
+                if (!content) return;
+                const attr = isProp ? 'property' : 'name';
+                let meta = document.querySelector(`meta[${attr}="${nameOrProp}"]`);
+                if (!meta) {
+                    meta = document.createElement('meta');
+                    meta.setAttribute(attr, nameOrProp);
+                    document.head.appendChild(meta);
+                }
+                meta.setAttribute('content', content);
+            }
+
+            fetch('/index.html')
+                .then(res => {
+                    if (!res.ok) throw new Error('/index.html 응답 없음');
+                    return res.text();
+                })
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    let rawTitle = doc.querySelector('title')?.innerText?.trim() || window.location.hostname;
+                    let brandName = rawTitle.split(/[-–—|]/)[0].trim() || rawTitle;
+                    let mainOgImg = doc.querySelector('meta[property="og:image"]')?.content || '';
+
+                    const pageSubTitle = "고객후기 | 실제 이용자 리뷰";
+                    document.title = `${brandName} | ${pageSubTitle}`;
+
+                    document.querySelectorAll('.auto-brand-name').forEach(el => {
+                        el.textContent = brandName;
+                    });
+
+                    setMeta('og:type', true, 'article');
+                    setMeta('og:site_name', true, brandName);
+                    setMeta('og:title', true, `${brandName} - 고객후기`);
+                    setMeta('og:description', true, `${brandName}의 실제 서비스를 경험하신 고객분들의 솔직한 이용 소감입니다.`);
+                    setMeta('og:url', true, currentUrl);
+                    if (mainOgImg) setMeta('og:image', true, mainOgImg);
+
+                    injectStructuredData(origin, currentUrl, brandName);
+                })
+                .catch(() => {
+                    const hostBrand = window.location.hostname;
+                    document.title = `${hostBrand} | 고객후기 및 실제 이용자 리뷰`;
+                    injectStructuredData(origin, currentUrl, hostBrand);
+                });
+
+            function injectStructuredData(originUrl, pageUrl, name) {
+                const schema = {
+                    "@context": "https://schema.org",
+                    "@graph": [
+                        {
+                            "@type": "BreadcrumbList",
+                            "itemListElement": [
+                                { "@type": "ListItem", "position": 1, "name": name, "item": originUrl + "/index.html" },
+                                { "@type": "ListItem", "position": 2, "name": "고객후기", "item": pageUrl }
+                            ]
+                        },
+                        {
+                            "@type": "Product",
+                            "name": name,
+                            "aggregateRating": {
+                                "@type": "AggregateRating",
+                                "ratingValue": "5.0",
+                                "reviewCount": "3"
+                            },
+                            "review": [
+                                {
+                                    "@type": "Review",
+                                    "author": { "@type": "Person", "name": "김*진" },
+                                    "reviewRating": { "@type": "Rating", "ratingValue": "5" },
+                                    "reviewBody": "불필요한 대기 시간 없이 빠르고 명확하게 필요한 내용을 파악할 수 있었습니다. 군더더기 없는 프로세스 덕분에 시간을 크게 절약했습니다."
+                                },
+                                {
+                                    "@type": "Review",
+                                    "author": { "@type": "Person", "name": "이*훈" },
+                                    "reviewRating": { "@type": "Rating", "ratingValue": "5" },
+                                    "reviewBody": "이용 방법이 직관적이고 안내가 체계적이어서 첫 이용임에도 전혀 어려움이 없었습니다. 만족도가 매우 높아 지속적으로 재방문하고 있습니다."
+                                },
+                                {
+                                    "@type": "Review",
+                                    "author": { "@type": "Person", "name": "박*영" },
+                                    "reviewRating": { "@type": "Rating", "ratingValue": "5" },
+                                    "reviewBody": "궁금했던 사항들이 투명하게 정리되어 있어 신뢰가 갔습니다. 전반적인 서비스 품질과 완성도가 기대 이상입니다."
+                                }
+                            ]
+                        }
+                    ]
+                };
+                const scriptEl = document.createElement('script');
+                scriptEl.type = 'application/ld+json';
+                scriptEl.textContent = JSON.stringify(schema);
+                document.head.appendChild(scriptEl);
+            }
+        })();
+    </script>
+
+    <!-- 프리미엄 Pretendard 웹폰트 로드 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 
     <style>
+        /* 1. 글로벌 리셋 & 베이스 */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; background-color: #fafafa; color: #111827; padding: 50px 20px; line-height: 1.65; letter-spacing: -0.025em; -webkit-font-smoothing: antialiased; }
-        .container { max-width: 760px; margin: 0 auto; background: #ffffff; padding: 40px; border-radius: 16px; border: 1px solid #f0f0f2; box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.03), 0 20px 25px -5px rgba(0, 0, 0, 0.02); }
-        .main-bridge-cta-wrap { width: 100%; margin-bottom: 45px; }
-        .main-bridge-cta-box { position: relative; background: #090a0f; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 26px 28px; display: flex; align-items: center; justify-content: space-between; gap: 24px; text-decoration: none !important; cursor: pointer; box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.18); transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
-        .main-bridge-cta-box:hover { transform: translateY(-2px); box-shadow: 0 18px 32px -8px rgba(0, 0, 0, 0.28); border-color: rgba(255, 255, 255, 0.16); }
+        body { 
+            font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; 
+            background-color: #fafafa; 
+            color: #111827; 
+            padding: 50px 20px; 
+            line-height: 1.65; 
+            letter-spacing: -0.025em; 
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container { 
+            max-width: 760px; 
+            margin: 0 auto; 
+            background: #ffffff; 
+            padding: 44px; 
+            border-radius: 16px; 
+            border: 1px solid #f0f0f2;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.03), 0 20px 25px -5px rgba(0, 0, 0, 0.02); 
+        }
+
+        /* 2. 브레드크럼 (경로 탐색) */
+        .breadcrumb-nav { margin-bottom: 22px; }
+        .breadcrumb-list {
+            display: flex;
+            align-items: center;
+            list-style: none;
+            font-size: 12.5px;
+            color: #94a3b8;
+            gap: 8px;
+        }
+        .breadcrumb-list a { color: #64748b; text-decoration: none; }
+        .breadcrumb-list a:hover { color: #0f172a; }
+        .breadcrumb-separator { font-size: 10px; color: #cbd5e1; }
+
+        /* 3. 럭셔리 블랙 CTA 배너 */
+        .main-bridge-cta-wrap { width: 100%; margin-bottom: 40px; }
+        .main-bridge-cta-box {
+            position: relative;
+            background: #090a0f;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 24px 26px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            text-decoration: none !important;
+            cursor: pointer;
+            box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.16);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .main-bridge-cta-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 32px -8px rgba(0, 0, 0, 0.25);
+            border-color: rgba(255, 255, 255, 0.16);
+        }
         .cta-left { flex: 1; z-index: 1; }
-        .cta-badge { display: inline-block; color: #94a3b8; font-size: 10.5px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 6px; }
-        .cta-title { color: #ffffff; font-size: 17px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; word-break: keep-all; }
-        .cta-desc { color: #8e95a3; font-size: 13px; margin: 0; line-height: 1.5; word-break: keep-all; }
-        .cta-btn-area { flex-shrink: 0; z-index: 1; }
-        .cta-action-btn { display: inline-flex; align-items: center; gap: 8px; background: #ffffff; color: #090a0f !important; padding: 11px 20px; border-radius: 8px; font-size: 13.5px; font-weight: 600; transition: all 0.2s ease; }
+        .cta-badge {
+            display: inline-block;
+            color: #94a3b8;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .cta-title-text {
+            color: #ffffff;
+            font-size: 16.5px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 4px;
+            word-break: keep-all;
+        }
+        .cta-desc {
+            color: #8e95a3;
+            font-size: 13px;
+            margin: 0;
+            line-height: 1.45;
+            word-break: keep-all;
+        }
+        .cta-btn-area { flex-shrink: 0; }
+        .cta-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ffffff;
+            color: #090a0f !important;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            transition: all 0.2s ease;
+        }
         .main-bridge-cta-box:hover .cta-action-btn { background: #f1f3f5; }
         .cta-arrow-icon { transition: transform 0.2s ease; }
         .main-bridge-cta-box:hover .cta-arrow-icon { transform: translateX(3px); }
-        .header { text-align: left; margin-bottom: 35px; padding-bottom: 25px; border-bottom: 1px solid #f1f3f5; }
-        .category-tag { display: inline-block; font-size: 11.5px; font-weight: 700; color: #64748b; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
-        .header h1 { font-size: 26px; color: #0f172a; margin-bottom: 8px; font-weight: 700; letter-spacing: -0.03em; }
-        .header p { color: #64748b; font-size: 14.5px; line-height: 1.6; }
-        .review-list { display: grid; gap: 16px; }
-        .review-card { padding: 24px 26px; background: #ffffff; border-radius: 12px; border: 1px solid #eef0f3; transition: border-color 0.2s ease; }
-        .review-card:hover { border-color: #cbd5e1; }
-        .review-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-        .review-score { font-size: 12px; font-weight: 700; color: #0f172a; letter-spacing: 0.5px; }
-        .reviewer-meta { font-size: 12px; color: #94a3b8; }
-        .review-text { font-size: 14px; color: #334155; line-height: 1.65; margin: 0; word-break: keep-all; }
+
+        /* 4. 헤더 영역 */
+        .header { 
+            text-align: left; 
+            margin-bottom: 35px; 
+            padding-bottom: 22px;
+            border-bottom: 1px solid #f1f3f5;
+        }
+        .category-tag {
+            display: inline-block;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #64748b;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .header h1 { 
+            font-size: 26px; 
+            color: #0f172a; 
+            margin-bottom: 8px; 
+            font-weight: 800; 
+            letter-spacing: -0.03em;
+        }
+        .header p { 
+            color: #64748b; 
+            font-size: 15px; 
+            line-height: 1.6;
+        }
+
+        /* 5. 리뷰 리스트 & 카드 */
+        .review-list { 
+            display: grid; 
+            gap: 16px; 
+        }
+        .review-card { 
+            padding: 24px 26px; 
+            background: #ffffff; 
+            border-radius: 12px; 
+            border: 1px solid #eef0f3;
+            transition: all 0.2s ease;
+        }
+        .review-card:hover {
+            border-color: #cbd5e1;
+            background-color: #fdfdfe;
+        }
+        .review-top { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            margin-bottom: 12px; 
+        }
+
+        /* ★ [개선된 별점 및 인증 뱃지 디자인] */
+        .review-top-left {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .stars-group {
+            display: inline-flex;
+            gap: 2px;
+            color: #f59e0b;
+        }
+        .stars-group svg {
+            width: 14px;
+            height: 14px;
+            fill: #f59e0b;
+        }
+        .review-score-num {
+            font-size: 13.5px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.01em;
+        }
+        .verified-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 4px;
+        }
+        .verified-pill svg {
+            width: 11px;
+            height: 11px;
+            stroke: #3b82f6;
+            stroke-width: 2.5;
+            fill: none;
+        }
+
+        .reviewer-meta { 
+            font-size: 12px; 
+            color: #94a3b8; 
+            font-weight: 500;
+        }
+        .review-text { 
+            font-size: 14px; 
+            color: #334155; 
+            line-height: 1.65; 
+            margin: 0; 
+            word-break: keep-all; 
+        }
+
+        /* 6. 모바일 반응형 */
         @media (max-width: 640px) {
-            body { padding: 25px 14px; }
+            body { padding: 20px 14px; }
             .container { padding: 26px 18px; }
-            .main-bridge-cta-wrap { margin-bottom: 30px; }
-            .main-bridge-cta-box { flex-direction: column; align-items: flex-start; padding: 22px 18px; gap: 18px; }
-            .cta-title { font-size: 16px; }
+            .main-bridge-cta-wrap { margin-bottom: 25px; }
+            .main-bridge-cta-box {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 20px 16px;
+                gap: 16px;
+            }
+            .cta-title-text { font-size: 15.5px; }
+            .cta-desc { font-size: 12px; }
             .cta-btn-area { width: 100%; }
             .cta-action-btn { width: 100%; justify-content: center; }
+
             .header h1 { font-size: 22px; }
+            .header p { font-size: 13.5px; }
             .review-card { padding: 18px 16px; }
+            .review-top {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
         }
     </style>
 </head>
 <body>
+
     <div class="container">
-        <div class="main-bridge-cta-wrap">
-            <a href="/" class="main-bridge-cta-box">
+
+        <!-- 1. 브레드크럼 네비게이션 (/index.html 연동) -->
+        <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+            <ol class="breadcrumb-list">
+                <li><a href="/index.html" class="auto-brand-name">홈</a></li>
+                <li class="breadcrumb-separator">/</li>
+                <li aria-current="page">고객후기</li>
+            </ol>
+        </nav>
+
+        <!-- 2. 최상단 공식 서비스 연결 브릿지 배너 (/index.html 연동) -->
+        <aside class="main-bridge-cta-wrap" aria-label="메인 공식 서비스 안내 배너">
+            <a href="/index.html" class="main-bridge-cta-box" title="공식 홈페이지 메인 서비스로 이동">
                 <div class="cta-left">
                     <span class="cta-badge">Official Service</span>
-                    <h2 class="cta-title">공식 홈페이지 메인 서비스 안내</h2>
+                    <p class="cta-title-text"><span class="auto-brand-name">공식</span> 홈페이지 메인 서비스 안내</p>
                     <p class="cta-desc">전체 서비스 상세 구성과 실시간 업데이트 혜택을 확인하실 수 있습니다.</p>
                 </div>
                 <div class="cta-btn-area">
                     <div class="cta-action-btn">
                         <span>메인 방문하기</span>
-                        <svg class="cta-arrow-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                        <svg class="cta-arrow-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
                     </div>
                 </div>
             </a>
-        </div>
+        </aside>
 
-        <header class="header">
-            <span class="category-tag">Customer Reviews</span>
-            <h1>고객후기</h1>
-            <p>실제 서비스를 경험하신 고객분들의 솔직한 이용 소감입니다.</p>
-        </header>
+        <!-- 3. 본문 시맨틱 콘텐츠 영역 -->
+        <main>
+            <header class="header">
+                <span class="category-tag">Customer Reviews</span>
+                <h1><span class="auto-brand-name">공식</span> 고객후기</h1>
+                <p>실제 서비스를 경험하신 고객분들의 솔직한 이용 소감입니다.</p>
+            </header>
 
-        <section class="review-list">
-            <div class="review-card">
-                <div class="review-top">
-                    <span class="review-score">VERIFIED 5.0</span>
-                    <span class="reviewer-meta">실제 이용 고객 김*진 님</span>
-                </div>
-                <p class="review-text">“불필요한 대기 시간 없이 빠르고 명확하게 필요한 내용을 파악할 수 있었습니다. 군더더기 없는 프로세스 덕분에 시간을 크게 절약했습니다.”</p>
-            </div>
-            <div class="review-card">
-                <div class="review-top">
-                    <span class="review-score">VERIFIED 5.0</span>
-                    <span class="reviewer-meta">실제 이용 고객 이*훈 님</span>
-                </div>
-                <p class="review-text">“이용 방법이 직관적이고 안내가 체계적이어서 첫 이용임에도 전혀 어려움이 없었습니다. 만족도가 매우 높아 지속적으로 재방문하고 있습니다.”</p>
-            </div>
-            <div class="review-card">
-                <div class="review-top">
-                    <span class="review-score">VERIFIED 5.0</span>
-                    <span class="reviewer-meta">실제 이용 고객 박*영 님</span>
-                </div>
-                <p class="review-text">“궁금했던 사항들이 투명하게 정리되어 있어 신뢰가 갔습니다. 전반적인 서비스 품질과 완성도가 기대 이상입니다.”</p>
-            </div>
-        </section>
+            <!-- 실제 고객 리뷰 리스트 -->
+            <section class="review-list" aria-label="고객 이용 후기 목록">
+                
+                <!-- 리뷰 카드 1 -->
+                <article class="review-card">
+                    <div class="review-top">
+                        <div class="review-top-left">
+                            <div class="stars-group" aria-label="평점 5점 만점">
+                                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                            </div>
+                            <span class="review-score-num">5.0</span>
+                            <span class="verified-pill">
+                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                이용 인증
+                            </span>
+                        </div>
+                        <span class="reviewer-meta">실제 이용 고객 김*진 님</span>
+                    </div>
+                    <p class="review-text">“불필요한 대기 시간 없이 빠르고 명확하게 필요한 내용을 파악할 수 있었습니다. 군더더기 없는 프로세스 덕분에 시간을 크게 절약했습니다.”</p>
+                </article>
+
+                <!-- 리뷰 카드 2 -->
+                <article class="review-card">
+                    <div class="review-top">
+                        <div class="review-top-left">
+                            <div class="stars-group" aria-label="평점 5점 만점">
+                                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                            </div>
+                            <span class="review-score-num">5.0</span>
+                            <span class="verified-pill">
+                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                이용 인증
+                            </span>
+                        </div>
+                        <span class="reviewer-meta">실제 이용 고객 이*훈 님</span>
+                    </div>
+                    <p class="review-text">“이용 방법이 직관적이고 안내가 체계적이어서 첫 이용임에도 전혀 어려움이 없었습니다. 만족도가 매우 높아 지속적으로 재방문하고 있습니다.”</p>
+                </article>
+
+                <!-- 리뷰 카드 3 -->
+                <article class="review-card">
+                    <div class="review-top">
+                        <div class="review-top-left">
+                            <div class="stars-group" aria-label="평점 5점 만점">
+                                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                            </div>
+                            <span class="review-score-num">5.0</span>
+                            <span class="verified-pill">
+                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                이용 인증
+                            </span>
+                        </div>
+                        <span class="reviewer-meta">실제 이용 고객 박*영 님</span>
+                    </div>
+                    <p class="review-text">“궁금했던 사항들이 투명하게 정리되어 있어 신뢰가 갔습니다. 전반적인 서비스 품질과 완성도가 기대 이상입니다.”</p>
+                </article>
+
+            </section>
+        </main>
+
     </div>
+
 </body>
 </html>
