@@ -3,86 +3,276 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>사이트맵 (전체 서비스 메뉴 안내)</title>
-    <meta name="description" content="솔루션 안내, 통합 검색, 견적 요약, 프로모션 혜택, 이용 후기 및 커뮤니티 전체 메뉴 목록입니다.">
+
+    <!-- 1. [핵심 SEO 설정] 사이트맵 중복 수집은 막고, 메인페이지로 링크 점수를 전달 -->
+    <title>사이트맵 | 전체 서비스 및 메뉴 종합 안내</title>
+    <meta name="description" content="공식 서비스 구성, 맞춤 솔루션, 견적 요약, 프로모션 및 고객 지원 전체 메뉴 바로가기 안내입니다.">
+    <!-- ★ noindex: 수백 개 사이트 복제 페널티 차단 / follow: 메인페이지로 링크 가산점 전달 -->
+    <meta name="robots" content="noindex, follow">
+
+    <!-- 2. [전자동 브랜딩 엔진] 메인 /index.html 기반 자동 동기화 -->
+    <script>
+        (function() {
+            const host = window.location.hostname.replace('www.', '');
+            fetch('/index.html')
+                .then(res => res.ok ? res.text() : '')
+                .then(html => {
+                    let brand = host;
+                    if (html) {
+                        const doc = new DOMParser().parseFromString(html, 'text/html');
+                        const rawTitle = doc.querySelector('title')?.innerText?.trim() || host;
+                        brand = rawTitle.split(/[-–—|]/)[0].trim() || host;
+                    }
+                    applyBranding(brand);
+                })
+                .catch(() => applyBranding(host));
+
+            function applyBranding(brand) {
+                document.title = `${brand} | 전체 서비스 사이트맵`;
+                document.querySelectorAll('.brand-text').forEach(el => el.textContent = brand);
+            }
+        })();
+    </script>
+
+    <!-- 프리미엄 Pretendard 웹폰트 로드 -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+
     <style>
+        /* 1. 글로벌 리셋 & 베이스 */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; line-height: 1.6; color: #333; background-color: #f9f9f9; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 35px 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        h1 { font-size: 24px; color: #111; margin-bottom: 12px; border-bottom: 2px solid #222; padding-bottom: 12px; }
-        h2 { font-size: 17px; color: #222; margin-top: 24px; margin-bottom: 10px; border-left: 4px solid #0066cc; padding-left: 10px; }
-        p { margin-bottom: 12px; font-size: 14px; color: #555; word-break: keep-all; }
-        .sitemap-list { list-style: none; margin-left: 0; margin-bottom: 20px; }
-        .sitemap-list li { background: #fdfdfd; border: 1px solid #e8e8e8; border-radius: 6px; padding: 12px 15px; margin-bottom: 8px; }
-        .sitemap-list a { font-weight: bold; color: #0066cc; text-decoration: none; font-size: 15px; display: inline-block; margin-bottom: 3px; }
-        .sitemap-list a:hover { text-decoration: underline; }
-        .sitemap-list p { margin-bottom: 0; font-size: 13px; color: #777; }
-        .nav-links { margin-top: 35px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; font-size: 13px; }
-        .nav-links a { color: #0066cc; text-decoration: none; margin: 0 6px; font-weight: 500; }
-        .nav-links a:hover { text-decoration: underline; }
-        footer { margin-top: 25px; text-align: center; font-size: 13px; color: #888; }
+        body { 
+            font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; 
+            background-color: #fafafa; 
+            color: #111827; 
+            padding: 50px 20px; 
+            line-height: 1.65; 
+            letter-spacing: -0.025em; 
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container { 
+            max-width: 760px; 
+            margin: 0 auto; 
+            background: #ffffff; 
+            padding: 44px; 
+            border-radius: 16px; 
+            border: 1px solid #f0f0f2; 
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.03), 0 20px 25px -5px rgba(0, 0, 0, 0.02); 
+        }
+
+        /* 2. 브레드크럼 */
+        .breadcrumb-nav { margin-bottom: 22px; font-size: 13px; color: #94a3b8; }
+        .breadcrumb-nav a { color: #64748b; text-decoration: none; font-weight: 600; }
+        .breadcrumb-nav a:hover { color: #0f172a; }
+
+        /* 3. 럭셔리 블랙 메인 허브 배너 (메인페이지로 링크 점수를 강하게 전달) */
+        .main-bridge-cta-wrap { width: 100%; margin-bottom: 40px; }
+        .main-bridge-cta-box { 
+            position: relative; 
+            background: #090a0f; 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            border-radius: 12px; 
+            padding: 24px 26px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            gap: 20px; 
+            text-decoration: none !important; 
+            cursor: pointer; 
+            box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.16); 
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+        .main-bridge-cta-box:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 18px 32px -8px rgba(0, 0, 0, 0.25); 
+            border-color: rgba(255, 255, 255, 0.16); 
+        }
+        .cta-left { flex: 1; z-index: 1; }
+        .cta-badge { display: inline-block; color: #94a3b8; font-size: 10px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 5px; }
+        .cta-title-text { color: #ffffff; font-size: 16.5px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; word-break: keep-all; }
+        .cta-desc { color: #8e95a3; font-size: 13px; margin: 0; line-height: 1.45; word-break: keep-all; }
+        .cta-btn-area { flex-shrink: 0; }
+        .cta-action-btn { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 8px; 
+            background: #ffffff; 
+            color: #090a0f !important; 
+            padding: 10px 18px; 
+            border-radius: 8px; 
+            font-size: 13px; 
+            font-weight: 600; 
+            transition: all 0.2s ease; 
+        }
+        .main-bridge-cta-box:hover .cta-action-btn { background: #f1f3f5; }
+
+        /* 4. 헤더 영역 */
+        .header { text-align: left; margin-bottom: 35px; padding-bottom: 22px; border-bottom: 1px solid #f1f3f5; }
+        .category-tag { display: inline-block; font-size: 11.5px; font-weight: 700; color: #64748b; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
+        .header h1 { font-size: 26px; color: #0f172a; margin-bottom: 8px; font-weight: 800; letter-spacing: -0.03em; }
+        .header p { color: #64748b; font-size: 14.5px; line-height: 1.6; }
+
+        /* 5. 사이트맵 섹션 및 리스트 */
+        .section-title { font-size: 17px; font-weight: 700; color: #0f172a; margin-bottom: 16px; letter-spacing: -0.02em; }
+        .sitemap-group { margin-bottom: 35px; }
+        .sitemap-list { list-style: none; display: grid; gap: 12px; }
+        .sitemap-item { 
+            background: #ffffff; 
+            border: 1px solid #eef0f3; 
+            border-radius: 12px; 
+            padding: 18px 22px; 
+            transition: all 0.2s ease; 
+        }
+        .sitemap-item:hover { border-color: #cbd5e1; background-color: #fdfdfe; }
+        .sitemap-link { 
+            display: inline-block; 
+            font-size: 15px; 
+            font-weight: 700; 
+            color: #0284c7; 
+            text-decoration: none; 
+            margin-bottom: 4px; 
+        }
+        .sitemap-link:hover { text-decoration: underline; color: #0369a1; }
+        .sitemap-desc { font-size: 13px; color: #64748b; margin: 0; line-height: 1.55; word-break: keep-all; }
+
+        /* 6. 메인 허브 요약 박스 (검색 로봇에 메인의 중요성을 주입) */
+        .hub-summary-box { 
+            background: #f8fafc; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 12px; 
+            padding: 22px 24px; 
+            margin-bottom: 30px; 
+        }
+        .hub-summary-box h2 { font-size: 14.5px; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+        .hub-summary-box p { font-size: 12.5px; color: #64748b; line-height: 1.6; margin: 0; word-break: keep-all; }
+
+        /* 7. 하단 텍스트 링크 네비게이션 */
+        .nav-links { 
+            padding-top: 20px; 
+            border-top: 1px solid #f1f3f5; 
+            text-align: center; 
+            font-size: 12.5px; 
+        }
+        .nav-links a { color: #64748b; text-decoration: none; margin: 0 6px; font-weight: 600; }
+        .nav-links a.main-link { color: #0284c7; font-weight: 800; }
+        .nav-links a:hover { color: #0f172a; text-decoration: underline; }
+
+        /* 8. 푸터 */
+        footer { margin-top: 25px; text-align: center; font-size: 12px; color: #94a3b8; }
+
+        /* 9. 모바일 반응형 */
+        @media (max-width: 640px) {
+            body { padding: 20px 14px; }
+            .container { padding: 26px 18px; }
+            .main-bridge-cta-wrap { margin-bottom: 25px; }
+            .main-bridge-cta-box { flex-direction: column; align-items: flex-start; padding: 20px 16px; gap: 16px; }
+            .cta-title-text { font-size: 15.5px; }
+            .cta-btn-area { width: 100%; }
+            .cta-action-btn { width: 100%; justify-content: center; }
+            .header h1 { font-size: 22px; }
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <h1>사이트맵 (Sitemap)</h1>
-        <p>본 웹사이트에서 제공하는 전체 서비스 구성 및 주요 메뉴 안내 페이지입니다.</p>
-    </header>
+    <div class="container">
 
-    <main>
-        <section>
-            <h2>1. 서비스 탐색 및 솔루션</h2>
-            <ul class="sitemap-list">
-                <li>
-                    <a href="solution.html">맞춤 솔루션 (Solution)</a>
-                    <p>사용자 환경과 요구사항에 맞춘 최적의 맞춤형 서비스 및 해결 방안 안내</p>
-                </li>
-                <li>
-                    <a href="sum.html">통합 견적 및 분석 요약 (Sum / Summary)</a>
-                    <p>조건별 예상 비용 실시간 합산 계산, 견적 내역 및 비교 요약 리포트</p>
-                </li>
-                <li>
-                    <a href="search.html">스마트 상세 검색 (Search)</a>
-                    <p>필터링 옵션을 통한 맞춤 조건별 서비스 검색 및 빠른 탐색 센터</p>
-                </li>
-            </ul>
-        </section>
+        <!-- 1. 브레드크럼 (메인페이지로 1차 링크 연결) -->
+        <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+            <a href="/index.html"><span class="brand-text">홈</span></a> &gt; <span>전체 서비스 사이트맵</span>
+        </nav>
 
-        <section>
-            <h2>2. 혜택 및 참여 커뮤니티</h2>
-            <ul class="sitemap-list">
-                <li>
-                    <a href="promotion.html">특별 프로모션 및 이벤트 (Promotion)</a>
-                    <p>진행 중인 기간 한정 할인 혜택, 제휴 이벤트 및 특별 리워드 정보</p>
-                </li>
-                <li>
-                    <a href="reviews.html">실제 이용 후기 (Reviews)</a>
-                    <p>서비스를 직접 경험한 고객들의 생생한 리뷰, 평점 및 실제 도입 사례</p>
-                </li>
-                <li>
-                    <a href="community.html">열린 커뮤니티 (Community)</a>
-                    <p>회원 간 정보 교류, 질의응답(Q&A) 및 자유로운 의견 소통 공간</p>
-                </li>
-            </ul>
-        </section>
+        <!-- 2. 최상단 공식 메인 포털 연결 배너 (검색 로봇에 가장 강한 메인 링크 신호 전달) -->
+        <aside class="main-bridge-cta-wrap" aria-label="메인 공식 서비스 안내 배너">
+            <a href="/index.html" class="main-bridge-cta-box" title="공식 메인 서비스 홈으로 이동">
+                <div class="cta-left">
+                    <span class="cta-badge">Official Main Portal</span>
+                    <h2 class="cta-title-text"><span class="brand-text">공식</span> 대표 서비스 메인 포털 바로가기</h2>
+                    <p class="cta-desc">실시간 전체 서비스 상세 구성과 최신 공시 혜택을 메인 화면에서 확인하세요.</p>
+                </div>
+                <div class="cta-btn-area">
+                    <div class="cta-action-btn">
+                        <span>메인 방문하기</span>
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </a>
+        </aside>
 
-        <div class="nav-links">
-            <a href="/">홈</a> | 
-            <a href="solution.html">솔루션</a> | 
-            <a href="sum.html">견적요약</a> | 
-            <a href="search.html">통합검색</a> | 
-            <a href="promotion.html">프로모션</a> | 
-            <a href="reviews.html">이용후기</a> | 
-            <a href="community.html">커뮤니티</a>
-        </div>
-    </main>
+        <!-- 3. 본문 영역 -->
+        <main>
+            <header class="header">
+                <span class="category-tag">System Sitemap</span>
+                <h1><span class="brand-text">공식</span> 전체 서비스 사이트맵</h1>
+                <p>웹사이트에서 제공하는 전체 서비스 구성과 주요 메뉴 목록입니다.</p>
+            </header>
 
-    <footer>
-        <p>&copy; Online Service Information Center. All Rights Reserved.</p>
-    </footer>
-</div>
+            <!-- 1그룹: 핵심 솔루션 및 분석 서비스 -->
+            <section class="sitemap-group" aria-labelledby="group-1-title">
+                <h2 id="group-1-title" class="section-title">1. 핵심 솔루션 및 분석 서비스</h2>
+                <ul class="sitemap-list">
+                    <li class="sitemap-item">
+                        <a href="solution.html" class="sitemap-link">맞춤 솔루션 안내 (Custom Solution)</a>
+                        <p class="sitemap-desc">사용자의 환경과 요구사항에 최적화된 체계적인 단계별 프로세스 안내</p>
+                    </li>
+                    <li class="sitemap-item">
+                        <a href="sum.html" class="sitemap-link">스마트 비교계산 및 견적 요약 (Comparison)</a>
+                        <p class="sitemap-desc">조건별 실시간 견적 대조와 불필요한 비용을 줄이는 스마트 계산 가이드</p>
+                    </li>
+                    <li class="sitemap-item">
+                        <a href="search.html" class="sitemap-link">예상 혜택 간편 조회 (Benefit Simulator)</a>
+                        <p class="sitemap-desc">기본 조건 입력만으로 수령 가능한 맞춤 지원 항목과 예상 금액 산출 가이드</p>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- 2그룹: 혜택 및 고객 지원 센터 -->
+            <section class="sitemap-group" aria-labelledby="group-2-title">
+                <h2 id="group-2-title" class="section-title">2. 혜택 안내 및 고객 지원 센터</h2>
+                <ul class="sitemap-list">
+                    <li class="sitemap-item">
+                        <a href="promotion.html" class="sitemap-link">공식 프로모션 및 혜택 (Promotions)</a>
+                        <p class="sitemap-desc">이용자분들을 위해 시즌별 및 상시 제공되는 공식 가이드와 혜택 안내</p>
+                    </li>
+                    <li class="sitemap-item">
+                        <a href="reviews.html" class="sitemap-link">고객 만족도 및 품질 평가 (Evaluation)</a>
+                        <p class="sitemap-desc">실제 서비스를 경험하신 이용자분들의 주요 항목별 종합 피드백 요약 리포트</p>
+                    </li>
+                    <li class="sitemap-item">
+                        <a href="community.html" class="sitemap-link">커뮤니티 소통 가이드 (Community)</a>
+                        <p class="sitemap-desc">투명한 정보 공유와 건전한 이용자 환경 조성을 위한 공식 운영 원칙</p>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- 4. ★ 검색 로봇에 메인페이지 권위를 부여하는 허브 요약 박스 -->
+            <section class="hub-summary-box">
+                <h2>전체 서비스 통합 운영 체계 안내</h2>
+                <p>
+                    본 사이트맵에 기재된 모든 세부 가이드와 분석 데이터는 <span class="brand-text">공식</span> 메인 시스템을 통해 통합 관리됩니다. 모든 개별 서비스의 최종 신청, 실시간 확정 견적 및 1:1 고객지원은 상단의 <b>[대표 서비스 메인 포털 바로가기]</b>를 통해 공식 시스템에서 안전하게 진행하실 수 있습니다.
+                </p>
+            </section>
+
+            <!-- 5. 하단 텍스트 링크 (메인페이지로 3차 링크 연결) -->
+            <nav class="nav-links" aria-label="하단 전체 메뉴 네비게이션">
+                <a href="/index.html" class="main-link">메인 홈 바로가기</a> | 
+                <a href="solution.html">맞춤솔루션</a> | 
+                <a href="sum.html">비교계산</a> | 
+                <a href="search.html">예상혜택조회</a> | 
+                <a href="promotion.html">프로모션</a> | 
+                <a href="reviews.html">고객만족도</a> | 
+                <a href="community.html">커뮤니티가이드</a>
+            </nav>
+        </main>
+
+        <footer>
+            <p>&copy; <span class="brand-text">Official</span> Service Center. All Rights Reserved.</p>
+        </footer>
+
+    </div>
 
 </body>
 </html>

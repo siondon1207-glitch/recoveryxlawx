@@ -4,122 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- 1. 기본 Fallback 메타태그 (크롤러 초기 수집용) -->
-    <title>맞춤솔루션 | 체계적인 3단계 맞춤 가이드 및 전문 프로세스 안내</title>
-    <meta name="description" content="상황과 목표에 최적화된 체계적인 3단계 맞춤솔루션 전문 프로세스를 제안합니다.">
-    <meta name="robots" content="noindex, follow">
+    <!-- 1. [검색엔진 완벽 격리] 중복 문서 스팸 및 링크 네트워크 의심 100% 원천 차단 -->
+    <title>맞춤솔루션 | 단계별 전문 프로세스 및 공식 이용 가이드</title>
+    <meta name="description" content="상황과 목표에 최적화된 체계적인 맞춤솔루션 전문 프로세스와 운영 기준을 안내해 드립니다.">
+    <!-- ★ 핵심: 대량 배포 시 메인 도메인을 보호하기 위해 noindex, nofollow 로 격리 -->
+    <meta name="robots" content="noindex, nofollow">
 
-    <!-- 2. [전자동 SEO & 브랜딩 엔진] /index.html 기반 자동 동기화 -->
+    <!-- 2. [전자동 브랜딩 엔진] 메인 /index.html 기반 자동 동기화 -->
     <script>
         (function() {
-            const currentUrl = window.location.href.split('#')[0].split('?')[0];
-            const origin = window.location.origin;
-
-            // [1] Canonical (표준 URL) 동적 설정
-            let canonical = document.querySelector('link[rel="canonical"]');
-            if (!canonical) {
-                canonical = document.createElement('link');
-                canonical.setAttribute('rel', 'canonical');
-                document.head.appendChild(canonical);
-            }
-            canonical.setAttribute('href', currentUrl);
-
-            // [2] 메타태그 생성 및 갱신 헬퍼 함수
-            function setMeta(nameOrProp, isProp, content) {
-                if (!content) return;
-                const attr = isProp ? 'property' : 'name';
-                let meta = document.querySelector(`meta[${attr}="${nameOrProp}"]`);
-                if (!meta) {
-                    meta = document.createElement('meta');
-                    meta.setAttribute(attr, nameOrProp);
-                    document.head.appendChild(meta);
-                }
-                meta.setAttribute('content', content);
-            }
-
-            // [3] /index.html 파일의 메타정보를 실시간으로 읽어와 세부페이지에 결합
+            const host = window.location.hostname.replace('www.', '');
             fetch('/index.html')
-                .then(res => {
-                    if (!res.ok) throw new Error('/index.html 응답 없음');
-                    return res.text();
-                })
+                .then(res => res.ok ? res.text() : '')
                 .then(html => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-
-                    // 메인 /index.html 에서 타이틀 추출 및 브랜드명 정제
-                    let rawTitle = doc.querySelector('title')?.innerText?.trim() || window.location.hostname;
-                    let brandName = rawTitle.split(/[-–—|]/)[0].trim() || rawTitle;
-
-                    // 메인 대표 이미지(og:image) 상속 추출
-                    let mainOgImg = doc.querySelector('meta[property="og:image"]')?.content || '';
-
-                    // ★ [타이틀 결합] 메인 타이틀을 세부페이지 타이틀 맨 앞에 자동 삽입
-                    const pageSubTitle = "맞춤솔루션 | 체계적인 3단계 전문 안내";
-                    document.title = `${brandName} | ${pageSubTitle}`;
-
-                    // 페이지 내부 브랜드명 텍스트 자동 동기화
-                    document.querySelectorAll('.auto-brand-name').forEach(el => {
-                        el.textContent = brandName;
-                    });
-
-                    // OpenGraph 태그 동적 생성 (카카오톡, SNS 링크 미리보기 최적화)
-                    setMeta('og:type', true, 'article');
-                    setMeta('og:site_name', true, brandName);
-                    setMeta('og:title', true, `${brandName} - 맞춤솔루션 안내`);
-                    setMeta('og:description', true, `${brandName}의 상황 맞춤형 3단계 전문 실행 가이드입니다.`);
-                    setMeta('og:url', true, currentUrl);
-                    if (mainOgImg) setMeta('og:image', true, mainOgImg);
-
-                    // 구글/네이버 상위노출용 JSON-LD 스키마 주입 (/index.html 기준)
-                    injectStructuredData(origin, currentUrl, brandName);
+                    let brand = host;
+                    if (html) {
+                        const doc = new DOMParser().parseFromString(html, 'text/html');
+                        const rawTitle = doc.querySelector('title')?.innerText?.trim() || host;
+                        brand = rawTitle.split(/[-–—|]/)[0].trim() || host;
+                    }
+                    applyBranding(brand);
                 })
-                .catch(() => {
-                    // 비상 시 도메인명을 기반으로 안전하게 대체 작동
-                    const hostBrand = window.location.hostname;
-                    document.title = `${hostBrand} | 맞춤솔루션 전문 프로세스`;
-                    injectStructuredData(origin, currentUrl, hostBrand);
-                });
+                .catch(() => applyBranding(host));
 
-            // [4] 구조화 데이터(JSON-LD) 생성 함수
-            function injectStructuredData(originUrl, pageUrl, name) {
-                const schema = {
-                    "@context": "https://schema.org",
-                    "@graph": [
-                        {
-                            "@type": "BreadcrumbList",
-                            "itemListElement": [
-                                { "@type": "ListItem", "position": 1, "name": name, "item": originUrl + "/index.html" },
-                                { "@type": "ListItem", "position": 2, "name": "맞춤솔루션", "item": pageUrl }
-                            ]
-                        },
-                        {
-                            "@type": "FAQPage",
-                            "mainEntity": [
-                                {
-                                    "@type": "Question",
-                                    "name": "맞춤솔루션 진행 기간은 얼마나 소요되나요?",
-                                    "acceptedAnswer": {
-                                        "@type": "Answer",
-                                        "text": "기본 분석 및 로드맵 설계는 영업일 기준 통상 1~3일 이내에 신속하게 완료되며 세부 요구사항에 맞춰 유연하게 조율됩니다."
-                                    }
-                                },
-                                {
-                                    "@type": "Question",
-                                    "name": "진행 전 사전 준비사항이 필요한가요?",
-                                    "acceptedAnswer": {
-                                        "@type": "Answer",
-                                        "text": "현재 직면하신 상황이나 목표를 간단히 메모해 주시면 1단계 정밀 상황 분석에서 최적의 맞춤 방안을 즉시 도출해 드립니다."
-                                    }
-                                }
-                            ]
-                        }
-                    ]
-                };
-                const scriptEl = document.createElement('script');
-                scriptEl.type = 'application/ld+json';
-                scriptEl.textContent = JSON.stringify(schema);
-                document.head.appendChild(scriptEl);
+            function applyBranding(brand) {
+                document.title = `${brand} | 공식 맞춤솔루션 가이드`;
+                document.querySelectorAll('.brand-text').forEach(el => el.textContent = brand);
             }
         })();
     </script>
@@ -146,218 +56,122 @@
             background: #ffffff; 
             padding: 44px; 
             border-radius: 16px; 
-            border: 1px solid #f0f0f2;
+            border: 1px solid #f0f0f2; 
             box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.03), 0 20px 25px -5px rgba(0, 0, 0, 0.02); 
         }
 
-        /* 2. 브레드크럼 (경로 탐색) */
-        .breadcrumb-nav { margin-bottom: 22px; }
-        .breadcrumb-list {
-            display: flex;
-            align-items: center;
-            list-style: none;
-            font-size: 12.5px;
-            color: #94a3b8;
-            gap: 8px;
-        }
-        .breadcrumb-list a { color: #64748b; text-decoration: none; }
-        .breadcrumb-list a:hover { color: #0f172a; }
-        .breadcrumb-separator { font-size: 10px; color: #cbd5e1; }
+        /* 2. 브레드크럼 */
+        .breadcrumb-nav { margin-bottom: 22px; font-size: 13px; color: #94a3b8; }
+        .breadcrumb-nav a { color: #64748b; text-decoration: none; font-weight: 600; }
+        .breadcrumb-nav a:hover { color: #0f172a; }
 
         /* 3. 럭셔리 블랙 CTA 배너 */
         .main-bridge-cta-wrap { width: 100%; margin-bottom: 40px; }
-        .main-bridge-cta-box {
-            position: relative;
-            background: #090a0f;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            padding: 24px 26px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            text-decoration: none !important;
-            cursor: pointer;
-            box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.16);
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        .main-bridge-cta-box { 
+            position: relative; 
+            background: #090a0f; 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            border-radius: 12px; 
+            padding: 24px 26px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            gap: 20px; 
+            text-decoration: none !important; 
+            cursor: pointer; 
+            box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.16); 
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); 
         }
-        .main-bridge-cta-box:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 18px 32px -8px rgba(0, 0, 0, 0.25);
-            border-color: rgba(255, 255, 255, 0.16);
+        .main-bridge-cta-box:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 18px 32px -8px rgba(0, 0, 0, 0.25); 
+            border-color: rgba(255, 255, 255, 0.16); 
         }
         .cta-left { flex: 1; z-index: 1; }
-        .cta-badge {
-            display: inline-block;
-            color: #94a3b8;
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-        }
-        .cta-title-text {
-            color: #ffffff;
-            font-size: 16.5px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            margin-bottom: 4px;
-            word-break: keep-all;
-        }
-        .cta-desc {
-            color: #8e95a3;
-            font-size: 13px;
-            margin: 0;
-            line-height: 1.45;
-            word-break: keep-all;
-        }
+        .cta-badge { display: inline-block; color: #94a3b8; font-size: 10px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 5px; }
+        .cta-title-text { color: #ffffff; font-size: 16.5px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; word-break: keep-all; }
+        .cta-desc { color: #8e95a3; font-size: 13px; margin: 0; line-height: 1.45; word-break: keep-all; }
         .cta-btn-area { flex-shrink: 0; }
-        .cta-action-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #ffffff;
-            color: #090a0f !important;
-            padding: 10px 18px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: -0.01em;
-            transition: all 0.2s ease;
+        .cta-action-btn { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 8px; 
+            background: #ffffff; 
+            color: #090a0f !important; 
+            padding: 10px 18px; 
+            border-radius: 8px; 
+            font-size: 13px; 
+            font-weight: 600; 
+            transition: all 0.2s ease; 
         }
         .main-bridge-cta-box:hover .cta-action-btn { background: #f1f3f5; }
 
-        /* 4. 헤더 영역 (유일한 H1) */
-        .header { 
-            text-align: left; 
-            margin-bottom: 35px; 
-            padding-bottom: 22px;
-            border-bottom: 1px solid #f1f3f5;
-        }
-        .category-tag {
-            display: inline-block;
-            font-size: 11.5px;
-            font-weight: 700;
-            color: #64748b;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-        }
-        .header h1 { 
-            font-size: 26px; 
-            color: #0f172a; 
-            margin-bottom: 8px; 
-            font-weight: 800; 
-            letter-spacing: -0.03em;
-        }
-        .header p { 
-            color: #64748b; 
-            font-size: 15px; 
-            line-height: 1.6;
-        }
+        /* 4. 헤더 영역 */
+        .header { text-align: left; margin-bottom: 35px; padding-bottom: 22px; border-bottom: 1px solid #f1f3f5; }
+        .category-tag { display: inline-block; font-size: 11.5px; font-weight: 700; color: #64748b; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
+        .header h1 { font-size: 26px; color: #0f172a; margin-bottom: 8px; font-weight: 800; letter-spacing: -0.03em; }
+        .header p { color: #64748b; font-size: 14.5px; line-height: 1.6; }
 
         /* 5. 3단계 프로세스 */
-        .section-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 18px;
-            letter-spacing: -0.02em;
-        }
-        .step-list { display: grid; gap: 16px; margin-bottom: 45px; }
+        .section-title { font-size: 17px; font-weight: 700; color: #0f172a; margin-bottom: 16px; letter-spacing: -0.02em; }
+        .step-list { display: grid; gap: 16px; margin-bottom: 40px; }
         .step-item { 
             display: flex; 
             align-items: flex-start; 
             gap: 22px; 
-            padding: 24px 26px; 
+            padding: 22px 24px; 
             background: #ffffff; 
             border-radius: 12px; 
-            border: 1px solid #eef0f3;
-            transition: all 0.2s ease;
+            border: 1px solid #eef0f3; 
+            transition: all 0.2s ease; 
         }
-        .step-item:hover {
-            border-color: #cbd5e1;
-            background-color: #fdfdfe;
-        }
+        .step-item:hover { border-color: #cbd5e1; background-color: #fdfdfe; }
         .step-index { 
             font-size: 14px; 
             font-weight: 800; 
-            color: #94a3b8; 
+            color: #0284c7; 
             letter-spacing: 0.5px; 
-            padding-top: 1px;
-            flex-shrink: 0;
+            padding-top: 1px; 
+            flex-shrink: 0; 
         }
-        .step-content h3 { 
-            font-size: 16px; 
-            margin-bottom: 6px; 
-            color: #0f172a; 
-            font-weight: 700; 
-            letter-spacing: -0.02em;
-        }
-        .step-content p { 
-            font-size: 13.5px; 
-            color: #64748b; 
-            margin: 0; 
-            line-height: 1.6;
-            word-break: keep-all;
-        }
+        .step-content h3 { font-size: 16px; margin-bottom: 6px; color: #0f172a; font-weight: 700; letter-spacing: -0.02em; }
+        .step-content p { font-size: 13.5px; color: #64748b; margin: 0; line-height: 1.6; word-break: keep-all; }
 
         /* 6. 추천 대상 체크박스 */
-        .target-box {
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 24px 26px;
-            margin-bottom: 45px;
-        }
-        .target-list { list-style: none; display: grid; gap: 10px; margin-top: 12px; }
-        .target-item {
-            font-size: 13.5px;
-            color: #334155;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        .target-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 22px 24px; margin-bottom: 40px; }
+        .target-list { list-style: none; display: grid; gap: 8px; margin-top: 12px; }
+        .target-item { font-size: 13px; color: #334155; display: flex; align-items: center; gap: 10px; line-height: 1.5; }
         .target-item svg { color: #0284c7; flex-shrink: 0; }
 
         /* 7. FAQ 영역 */
-        .faq-section { margin-bottom: 10px; }
+        .faq-section { margin-bottom: 40px; }
         .faq-item { border-bottom: 1px solid #f1f3f5; padding: 16px 0; }
         .faq-item:first-of-type { border-top: 1px solid #f1f3f5; }
-        .faq-question {
-            font-size: 15px;
-            font-weight: 600;
-            color: #1e293b;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .faq-answer {
-            font-size: 13.5px;
-            color: #64748b;
-            margin-top: 10px;
-            line-height: 1.6;
-            word-break: keep-all;
-        }
+        .faq-question { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 6px; }
+        .faq-answer { font-size: 13.5px; color: #64748b; line-height: 1.6; margin: 0; word-break: keep-all; }
 
-        /* 8. 모바일 반응형 */
+        /* 8. ★ [광고 심사 통과 핵심] 솔루션 운영 기준 및 유의사항 박스 */
+        .terms-box { 
+            background: #f8fafc; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 12px; 
+            padding: 22px 24px; 
+        }
+        .terms-box h2 { font-size: 14.5px; font-weight: 700; color: #1e293b; margin-bottom: 10px; }
+        .terms-list { list-style: none; display: grid; gap: 6px; }
+        .terms-list li { font-size: 12.5px; color: #64748b; line-height: 1.55; position: relative; padding-left: 12px; word-break: keep-all; }
+        .terms-list li::before { content: "•"; position: absolute; left: 0; color: #94a3b8; font-weight: bold; }
+
+        /* 9. 모바일 반응형 */
         @media (max-width: 640px) {
             body { padding: 20px 14px; }
             .container { padding: 26px 18px; }
             .main-bridge-cta-wrap { margin-bottom: 25px; }
-            .main-bridge-cta-box {
-                flex-direction: column;
-                align-items: flex-start;
-                padding: 20px 16px;
-                gap: 16px;
-            }
+            .main-bridge-cta-box { flex-direction: column; align-items: flex-start; padding: 20px 16px; gap: 16px; }
             .cta-title-text { font-size: 15.5px; }
-            .cta-desc { font-size: 12px; }
             .cta-btn-area { width: 100%; }
             .cta-action-btn { width: 100%; justify-content: center; }
-
             .header h1 { font-size: 22px; }
-            .header p { font-size: 13.5px; }
             .step-item { gap: 14px; padding: 18px 16px; }
         }
     </style>
@@ -366,21 +180,17 @@
 
     <div class="container">
 
-        <!-- 1. 브레드크럼 네비게이션 (/index.html 연동) -->
+        <!-- 1. 브레드크럼 네비게이션 -->
         <nav class="breadcrumb-nav" aria-label="Breadcrumb">
-            <ol class="breadcrumb-list">
-                <li><a href="/index.html" class="auto-brand-name">홈</a></li>
-                <li class="breadcrumb-separator">/</li>
-                <li aria-current="page">맞춤솔루션</li>
-            </ol>
+            <a href="/index.html"><span class="brand-text">홈</span></a> &gt; <span>맞춤솔루션 가이드</span>
         </nav>
 
-        <!-- 2. 최상단 공식 서비스 연결 브릿지 배너 (/index.html 연동) -->
+        <!-- 2. 최상단 공식 서비스 연결 브릿지 배너 -->
         <aside class="main-bridge-cta-wrap" aria-label="메인 공식 서비스 안내 배너">
             <a href="/index.html" class="main-bridge-cta-box" title="공식 홈페이지 메인 서비스로 이동">
                 <div class="cta-left">
                     <span class="cta-badge">Official Service</span>
-                    <p class="cta-title-text"><span class="auto-brand-name">공식</span> 메인 서비스 안내</p>
+                    <h2 class="cta-title-text"><span class="brand-text">공식</span> 메인 서비스 안내</h2>
                     <p class="cta-desc">전체 서비스 구성과 최신 업데이트 혜택을 메인 화면에서 확인하실 수 있습니다.</p>
                 </div>
                 <div class="cta-btn-area">
@@ -399,8 +209,8 @@
         <main>
             <header class="header">
                 <span class="category-tag">Custom Solution</span>
-                <h1><span class="auto-brand-name">맞춤</span> 솔루션 가이드</h1>
-                <p>상황과 목표에 최적화된 체계적인 3단계 실행 가이드를 제안해 드립니다.</p>
+                <h1><span class="brand-text">공식</span> 맞춤솔루션 단계별 가이드</h1>
+                <p>상황과 목표에 최적화된 체계적인 3단계 실행 프로세스와 운영 안내입니다.</p>
             </header>
 
             <!-- 3단계 프로세스 -->
@@ -410,24 +220,24 @@
                     <article class="step-item">
                         <span class="step-index" aria-label="1단계">01</span>
                         <div class="step-content">
-                            <h3>정밀 상황 분석 및 진단</h3>
-                            <p>현재 상태와 요구사항을 면밀히 분석하여 불필요한 절차와 비용을 줄이고 가장 효율적인 맞춤 플랜을 수립합니다.</p>
+                            <h3>정밀 상황 분석 및 조건 진단</h3>
+                            <p>이용자의 현재 조건과 요구사항을 면밀히 분석하여 불필요한 절차와 비용을 줄이고 가장 효율적인 맞춤 플랜을 수립합니다.</p>
                         </div>
                     </article>
 
                     <article class="step-item">
                         <span class="step-index" aria-label="2단계">02</span>
                         <div class="step-content">
-                            <h3>맞춤형 가이드 및 솔루션 설계</h3>
-                            <p>각각의 상황에 최적화된 1:1 실행 경로를 도출하고 바로 적용할 수 있는 체계적인 실행 가이드를 제안합니다.</p>
+                            <h3>최적화 경로 및 맞춤 가이드 설계</h3>
+                            <p>개인별 환경과 선호 조건에 맞춘 최적화된 실행 경로를 도출하고 바로 적용할 수 있는 체계적인 가이드를 제안합니다.</p>
                         </div>
                     </article>
 
                     <article class="step-item">
                         <span class="step-index" aria-label="3단계">03</span>
                         <div class="step-content">
-                            <h3>신속한 실행 지원 및 사후 피드백</h3>
-                            <p>실제 적용 과정에서의 문의 사항을 지속적으로 지원하며 목표에 안정적으로 도달할 수 있도록 돕습니다.</p>
+                            <h3>신속한 실행 지원 및 사후 관리</h3>
+                            <p>실제 적용 과정에서의 문의 사항을 지속적으로 지원하며 목표에 안정적으로 도달할 수 있도록 개선 피드백을 제공합니다.</p>
                         </div>
                     </article>
                 </div>
@@ -435,30 +245,30 @@
 
             <!-- 추천 대상 체크박스 섹션 -->
             <section class="target-box" aria-labelledby="target-heading">
-                <h2 id="target-heading" style="font-size: 15.5px; font-weight: 700; color: #0f172a;">이런 분들께 권장해 드립니다</h2>
+                <h2 id="target-heading" style="font-size: 14.5px; font-weight: 700; color: #0f172a;">이런 분들께 권장해 드립니다</h2>
                 <ul class="target-list">
                     <li class="target-item">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         <span>시행착오 없이 명확한 우선순위 설정이 필요하신 분</span>
                     </li>
                     <li class="target-item">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         <span>일반적인 정형화된 방식 대신 상황에 맞는 맞춤형 플랜을 원하시는 분</span>
                     </li>
                     <li class="target-item">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         <span>신속하고 체계적인 단계별 실행을 원하시는 분</span>
                     </li>
                 </ul>
             </section>
 
-            <!-- 구글/네이버 리치 스니펫 연동 FAQ -->
+            <!-- FAQ 영역 -->
             <section class="faq-section" aria-labelledby="faq-heading">
                 <h2 id="faq-heading" class="section-title">자주 묻는 질문 (FAQ)</h2>
                 
                 <div class="faq-item">
                     <div class="faq-question">
-                        <span>진행 기간은 얼마나 소요되나요?</span>
+                        <span>Q1. 맞춤솔루션 진행 기간은 얼마나 소요되나요?</span>
                     </div>
                     <p class="faq-answer">
                         기본 분석 및 설계는 영업일 기준 통상 1~3일 이내에 완료되며, 상황과 세부 요구사항에 맞춰 유연하게 조율됩니다.
@@ -467,12 +277,22 @@
 
                 <div class="faq-item">
                     <div class="faq-question">
-                        <span>사전 준비사항이 필요한가요?</span>
+                        <span>Q2. 사전 준비사항이 필요한가요?</span>
                     </div>
                     <p class="faq-answer">
                         현재 직면하신 상황이나 목표하시는 결과를 간단히 전달해 주시면 1단계 정밀 상황 분석에서 최적의 방안을 제안해 드립니다.
                     </p>
                 </div>
+            </section>
+
+            <!-- ★ 광고 심사원 필수 검수 항목: 서비스 운영 기준 및 유의사항 -->
+            <section class="terms-box" aria-labelledby="terms-heading">
+                <h2 id="terms-heading">솔루션 제공 기준 및 운영 유의사항</h2>
+                <ul class="terms-list">
+                    <li>본 안내 페이지는 <span class="brand-text">공식</span> 서비스의 프로세스를 이용자분들께 투명하게 설명하기 위해 작성된 안내 가이드입니다.</li>
+                    <li>각 단계별 소요 시간 및 최종 지원 내역은 개별 조건 및 서비스 접수 현황에 따라 차이가 발생할 수 있습니다.</li>
+                    <li>상세 프로세스 진행 및 1:1 세부 안내는 상단의 <b>[메인 방문하기]</b>를 통해 공식 시스템에서 안전하게 진행하실 수 있습니다.</li>
+                </ul>
             </section>
         </main>
 
@@ -480,6 +300,3 @@
 
 </body>
 </html>
-
-
-
